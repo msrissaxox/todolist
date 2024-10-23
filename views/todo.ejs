@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css"> <!-- Ensure correct CSS path -->
+    <title>To-Do List</title>
+</head>
+<body>
+    <h1>My To-Do List</h1>
+
+    <ul>
+        <% if (todos.length > 0) { %>
+            <% todos.forEach(function(todo) { %>
+                <li><%= todo.item %></li>
+            <% }) %>
+        <% } else { %>
+            <li>No todos available</li>
+        <% } %>
+    </ul>
+</body>
+</html>

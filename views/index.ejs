@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+</head>
+<body onload = "getInput()" >
+
+    <!-- Registration Button -->
+<button onclick="document.getElementById('id02').style.display='block'" class="register_btn">Register</button>
+
+<!-- Registration Modal -->
+<div id="id02" class="modal">
+  <form class="modal-content animate" action="/register" method="post">
+    <div class="imgcontainer">
+      <span onclick="document.getElementById('id02').style.display='none'" class="close" title="Close Modal">&times;</span>
+      <img src="" alt="Avatar" class="avatar">
+    </div>
+
+    <div class="container">
+      <label for="uname"><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" name="uname" required>
+
+      <label for="psw"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" name="psw" required>
+
+      <button type="submit">Register</button>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+      <button type="button" onclick="document.getElementById('id02').style.display='none'" class="cancelbtn">Cancel</button>
+    </div>
+  </form>
+</div>
+
+    <button onclick="document.getElementById('id01').style.display='block'" class="login_btn">Login Button</button>
+
+    <div id="id01" class="modal">
+      
+        <form class="modal-content animate" action="/login" method="post">
+    
+        <div class="imgcontainer">
+          <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+          <img src="" alt="Avatar" class="avatar">
+        </div>
+    
+        <div class="container">
+          <label for="uname"><b>Username</b></label>
+          <input type="text" placeholder="Enter Username" name="uname" required>
+    
+          <label for="psw"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password" name="psw" required>
+            
+          <button type="submit">Login</button>
+          
+        </div>
+    
+        <div class="container" style="background-color:#f1f1f1">
+          <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
+          
+        </div>
+      </form>
+    </div>
+
+
+    <h1 id="header">To Do List ✅</h1>
+
+    
+
+    <input id="inputBox">
+    <button id="addBtn">Add Item</button>
+<!--Todo List-->
+    <!-- <div id="todoelement">
+       
+   <li class="eachItem">
+           
+    </li>    
+        
+    </div>
+
+    </div> -->
+    <ul id="todoelement">
+      <!-- Use EJS to display the todos dynamically -->
+      <% if (todos.length > 0) { %>
+          <% todos.forEach(function(todo) { %>
+              <li class="eachItem">
+                  <input type="checkbox" class="checkBox">
+                  <p class="textOnList"><%= todo.item %></p>
+              </li>
+          <% }) %>
+      <% } else { %>
+          <li>No items in your to-do list</li>
+      <% } %>
+  </ul>
+
+
+
+
+    <script src="/index.js"></script>
+</body>
+</html>
