@@ -1,53 +1,9 @@
-//When I input text and click add, it would save it 
-//locally and to the site
-
-//Variables
-
-//This is the variable storing the button element.
-
-//map of functions
-//getInput();
-//This function adds an event listener to the input Box. 
-//variable called inputted is redeclared as the value of what is in the input box
-// and then listens for keystroke Enter. When that happens, it should run 
-//the function called addItem(inputted). This function takes the value of inputted and 
-//runs the function that adds item. Then, we turn the value of the text to '' and return
-//the inputted variable value
-
-// function getInput(){
-//
-//     document.getElementById("inputBox").addEventListener("keydown", function(event) {
-//       
-//         inputted = document.getElementById("inputBox").value;
-//       
-//         if (event.key === 'Enter'){
-//         addItem(inputted);
-// textOnList.value = "";
-// return inputted;
-//         }})};
-
-//addItem function 
-
-// function addItem(itemAdded){
-//     let newElement = document.createElement("li");
-//     newElement.style.display = "flex";  // This ensures the children of the <li> are inline like flex items
-//     newElement.style.alignItems = "center";  // Centers items vertically
-//     newElement.innerHTML = `<input type="checkbox" class="checkBox"><p class="textOnList">${itemAdded}</p>`
-//     parentElement.appendChild(newElement);
-//     console.log(newElement.textContent);
-//     //Add strikethrough to each item added
-//     newElement.addEventListener("click", strikethrough);
-//  }
-
-//takes an input that is used in the function
-//Creates a new li element 
-//Gives this element a flexbox and sets it center
-//Set the inner HTML to give this element a checkbox, and p element. inside the P, we put the variable from itemAdded
-//itemAdded is the input for this function
-//this input would need to be the variable that stores the value of the inputted text.
-//This is from the getInput function. 
-
-
+//SqlLite clientInformation
+//sqlite> PRAGMA table_info(todos);
+//0|id|INTEGER|0||1
+//1|item|TEXT|0||0
+//2|completed|BOOLEAN|0||0
+//3|user_id|INTEGER|0||0
 
 //strikethrough function
 
@@ -55,6 +11,45 @@ const addBtn = document.getElementById("addBtn");
 const parentElement = document.getElementById("todoelement");
 // let eachItem = document.getElementsByClassName("eachItem");
 let textOnList = document.getElementById("inputBox");
+
+//delete buttons iteration and addEventListener
+const deleteButtons = document.querySelectorAll('.delete');
+
+for (let i = 0; i < deleteButtons.length; i++) {
+  deleteButtons[i].addEventListener("click", function(){
+    console.log('Deleting item with ID:', id);
+    console.log("i was clicked");
+
+// Get the ID from the button's dataset or from a parent element (like li)
+const id = this.dataset.id; // Assuming the button has a data-id attribute
+
+// Optional: Send a DELETE request to the server
+
+
+const todoId = req.params.id;
+fetch(`/delete/${id}`, {
+  method: 'DELETE'
+})
+.then(response => response.json())
+.then(data => {
+  if (data.success) {
+    // Remove the item from the DOM
+    const todoItem = this.closest('li'); // Assuming the button is inside an <li>
+    todoItem.remove(); // Remove the entire todo item (li)
+  } else {
+    console.error('Error deleting todo item:', data.message);
+  }
+})
+.catch(err => console.error('Error:', err));
+});
+}
+
+//Delete Function
+
+// const deleteFunction = () => {
+// app
+// };
+
 
 let inputted = '';
 //Modal
@@ -126,10 +121,11 @@ addBtn.addEventListener("click", function(){
 getInput(); 
 
 //
-function addItem(itemAdded){
+function addItem(itemAdded, id){
     if (!itemAdded) return;
 
     let newElement = document.createElement("li");
+    newTodoItem.setAttribute('data-id', id); // Assign unique id to each item
     newElement.style.display = "flex";  // This ensures the children of the <li> are inline like flex items
     newElement.style.alignItems = "center";  // Centers items vertically
     newElement.innerHTML = `<input type="checkbox" class="checkBox"><p class="textOnList">${itemAdded}</p>`

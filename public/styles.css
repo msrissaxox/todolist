@@ -30,6 +30,14 @@ margin-right: 10px;
     color: rgba(51, 51, 51, 0.98);
 }
 
+.delete {
+background: rgb(236, 17, 32);
+border: none;
+height: 1%;
+width: 20px;
+margin-top: 2%;
+margin-left: 1.5%;
+}
 /* 
 Modal Style
 */

@@ -1,3 +1,10 @@
+//SqlLite clientInformation
+//sqlite> PRAGMA table_info(todos);
+//0|id|INTEGER|0||1
+//1|item|TEXT|0||0
+//2|completed|BOOLEAN|0||0
+//3|user_id|INTEGER|0||0
+
 const express = require('express');
 const sqlite3 = require('sqlite3');
 const bodyParser = require('body-parser');
@@ -18,7 +25,7 @@ app.set('views', path.join(__dirname, 'views'));  // Ensure this points to your 
 const db = new sqlite3.Database('todo_list.db');
 
 // Middleware for parsing form data (URL-encoded) and JSON
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // For handling JSON data
 app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 
@@ -28,6 +35,20 @@ app.use(session({
     saveUninitialized: false,
     cookie: { secure: false }  // Set secure: true in production
 }));
+
+//Middleware to check to see if user is authenticated
+function isAuthenticated(req, res, next) {
+    if (req.session.userId) {
+        return next(); //User is authenticated, continue to next route handler
+    }
+    res.status(401).json({ message: 'Please log in first' });
+};
+
+
+app.get('/', (req, res) => {
+    res.render('index', { todos: [] });  // Render your main view or homepage
+});
+
 
 app.post('/register', (req, res) => {
     
@@ -79,32 +100,6 @@ app.post('/login', (req, res) => {
 });
 
 
-
-
-
-//Middleware to check to see if user is authenticated
-function isAuthenticated(req, res, next) {
-    if (req.session.userId) {
-        return next(); //User is authenticated, continue to next route handler
-    }
-    res.status(401).json({ message: 'Please log in first' });
-};
-
-// Get all to-do items for the logged-in user
-// Tested on Postman and returned Please log in first
-app.get('/', isAuthenticated, (req, res) => {
-const userId = req.session.userId;  
-db.all('SELECT * FROM todos WHERE user_id = ?', [userId], (err, rows) => {
-    if (err) {
-        return res.status(500).send(err.message);
-    }
-        // Render the `todo` EJS template and pass the todos as data
-        res.render('index', { todos: rows });
-        //when i type index instead of todo, it shows the page, with no styling and the register buttons again
-});
-});
-
-
 // Route to get the todo list for a specific user
 app.get('/todo/:id', isAuthenticated, (req, res) => {
     const userId = req.params.id; // Get user ID from the URL parameter
@@ -118,11 +113,32 @@ app.get('/todo/:id', isAuthenticated, (req, res) => {
 });
 
 
-app.get('/', (req, res) => {
-    res.render('index', { todos: [] });  // Pass data like 'todos' or other variables as needed
-    });
+// app.get('/', (req, res) => {
+//     res.render('index', { todos: [] });  // Pass data like 'todos' or other variables as needed
+//     });
 
-  
+  //Delete an item route
+
+//   app.delete('/delete/:id', isAuthenticated, (req, res) => {
+//     const todoId = req.params.id;
+//     db.run('DELETE FROM todos WHERE id = ?', [todoId], function(err) {
+//         if (err) {
+//             return res.status(500).json({ message: 'Error deleting to-do item' });
+//         }
+//         res.json({ success: true });
+//     });
+// });
+
+  app.delete('/delete/:id', (req, res) => {
+    const todoId = req.params.id;
+    db.run('DELETE FROM todos WHERE id = ?', [todoId], function(err) {
+        if (err) {
+            return res.status(500).json({ message: 'Error deleting to-do item' });
+        }
+        res.json({ success: true });
+    });
+});
+
 
 // Create a new to-do item (only for authenticated users)
 //Tested on Postman and returned please log in first
@@ -135,6 +151,10 @@ app.post('/add', isAuthenticated, (req, res) => {
         return res.status(400).json({ error: 'Item is required' });
     }
 
+    // app.delete('', req, res) => {
+
+    // }
+
     db.run('INSERT INTO todos (item, completed, user_id) VALUES (?, ?, ?)', [item, false, userId], function(err) {
         if (err) {
             return res.status(500).send(err.message);
@@ -145,19 +165,15 @@ app.post('/add', isAuthenticated, (req, res) => {
 
 
 
-
-
-
-
 // Update a to-do item (mark as completed)
-app.put('/todo/:id', isAuthenticated, (req, res) => {
+app.put('/todo/:id/toggle', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const { completed } = req.body;
 
     // Validate input
     if (typeof completed !== 'boolean') {
         return res.status(400).json({ error: 'Invalid completed status' });
-    }
+    } 
 
     db.run('UPDATE todos SET completed = ? WHERE id = ?', [completed, id], function(err) {
         if (err) {
@@ -169,14 +185,13 @@ app.put('/todo/:id', isAuthenticated, (req, res) => {
 });
 
 
-
 // Start the server
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-//Testing Code
+//Testing Code with Get Requests below
 
 //This code wil get all the tables
 app.get('/tables', (req, res) => {
@@ -188,7 +203,6 @@ app.get('/tables', (req, res) => {
     });
 });
    
-
 //This code gets all of the users
 
 app.get('/users', (req, res) => {
@@ -226,5 +240,18 @@ app.get('/check-users-table', (req, res) => {
             return res.status(500).json({ message: 'Error retrieving table info' });
         }
         res.json(rows);
+    });
+});
+
+
+//Access particular user's to-do list items
+app.get('/todo/:id', isAuthenticated, (req, res) => {
+    const userId = req.params.id; // Use this ID to look up todos for the specific user
+    db.all('SELECT * FROM todos WHERE user_id = ?', [userId], (err, rows) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        // Pass the user's todos to the EJS view or send them as JSON if using an API endpoint
+        res.render('index', { todos: rows }); // Or res.json(rows) for an API response
     });
 });
