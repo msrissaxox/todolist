@@ -24,10 +24,10 @@
 
     <div class="container">
       <label for="uname"><b>Username</b></label>
-      <input type="text" placeholder="Enter Username" name="uname" required>
+      <input type="text" placeholder="Enter Username" name="uname" autocomplete="username" required>
 
       <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" name="psw" required>
+      <input type="password" placeholder="Enter Password" name="psw" autocomplete="current-password" required>
 
       <button type="submit">Register</button>
     </div>
@@ -51,10 +51,10 @@
     
         <div class="container">
           <label for="uname"><b>Username</b></label>
-          <input type="text" placeholder="Enter Username" name="uname" required>
+          <input type="text" placeholder="Enter Username" name="uname" autocomplete="username" required>
     
           <label for="psw"><b>Password</b></label>
-          <input type="password" placeholder="Enter Password" name="psw" required>
+          <input type="password" placeholder="Enter Password" name="psw"autocomplete="current-password" required>
             
           <button type="submit">Login</button>
           
@@ -75,31 +75,23 @@
     <input id="inputBox">
     <button id="addBtn">Add Item</button>
 <!--Todo List-->
-    <!-- <div id="todoelement">
-       
-   <li class="eachItem">
-           
-    </li>    
-        
-    </div>
+     <div class="eachItem">
 
-    </div> -->
-    <ul id="todoelement">
-      <!-- Use EJS to display the todos dynamically -->
-      <% if (todos.length > 0) { %>
-          <% todos.forEach(function(todo) { %>
-              <li class="eachItem">
-                  <input type="checkbox" class="checkBox">
-                  <p class="textOnList"><%= todo.item %></p>
-                  <button class="delete">-</button>
-              </li>
-          <% }) %>
-      <% } else { %>
-          <li>No items in your to-do list</li>
-      <% } %>
-  </ul>
-
-
+<ul id="todoelement">
+    <% if (todos && todos.length > 0) { %>
+        <% todos.forEach(function(todo) { %>
+            <li class="eachItem" data-id="<%= todo.id %>" style="display: flex; align-items: center;">
+                <input type="checkbox" class="checkBox" <%= todo.completed ? 'checked' : '' %>>
+                <p class="textOnList" style="text-decoration: <%= todo.completed ? 'line-through' : 'none' %>; 
+                   color: <%= todo.completed ? 'gray' : 'black' %>"><%= todo.item %></p>
+                <button class="delete" data-id="<%= todo.id %>">-</button>
+            </li>
+        <% }) %>
+    <% } else { %>
+        <li>No items in your to-do list</li>
+    <% } %>
+</ul>
+</div>
 
 
     <script src="/index.js"></script>

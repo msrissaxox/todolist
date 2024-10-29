@@ -7,95 +7,174 @@
 
 //strikethrough function
 
+//10/28 new errors identified:
+//items do not save to the new database
+//continue to work on delete effect and making sure that it's being processed on the back end
+//continue to work on strikethrough effect. May need to dive into react state
+
+
+"use strict";
 const addBtn = document.getElementById("addBtn");
 const parentElement = document.getElementById("todoelement");
-// let eachItem = document.getElementsByClassName("eachItem");
 let textOnList = document.getElementById("inputBox");
 
-//delete buttons iteration and addEventListener
-const deleteButtons = document.querySelectorAll('.delete');
+//getInput function stores the value enterred in input area in a variable called
+//inputted and also listens for keystroke Enter. When that happens, it should run
+//the function called addItem(inputted). This function takes
+function getInput() {
+  //add an event listener to the inputBox when the enter button is pressed
+  textOnList.addEventListener("keydown", function (event) {
+    //This stores the value in a variable
+    const inputted = this.value; // Trim whitespace
+    // Check if the pressed key is 'Enter'
+    if (event.key === "Enter" && inputted) {
+      addItem(inputted);
+      this.value = "";
+      console.log("added text");
 
-for (let i = 0; i < deleteButtons.length; i++) {
-  deleteButtons[i].addEventListener("click", function(){
-    console.log('Deleting item with ID:', id);
-    console.log("i was clicked");
+      // return inputted;
+    }
+  });
+}
 
-// Get the ID from the button's dataset or from a parent element (like li)
-const id = this.dataset.id; // Assuming the button has a data-id attribute
+//The getInput function is called when this button is clicked.
 
-// Optional: Send a DELETE request to the server
-
-
-const todoId = req.params.id;
-fetch(`/delete/${id}`, {
-  method: 'DELETE'
-})
-.then(response => response.json())
-.then(data => {
-  if (data.success) {
-    // Remove the item from the DOM
-    const todoItem = this.closest('li'); // Assuming the button is inside an <li>
-    todoItem.remove(); // Remove the entire todo item (li)
-  } else {
-    console.error('Error deleting todo item:', data.message);
+addBtn.addEventListener("click", function () {
+  const inputted = textOnList.value; // Get trimmed input value
+  if (inputted) {
+    addItem(inputted); // Call addItem with the input value
+    textOnList.value = ""; // Clear input field
   }
-})
-.catch(err => console.error('Error:', err));
 });
+
+function addItem(itemAdded, id) {
+  if (!itemAdded) return;
+
+  let newElement = document.createElement("li");
+  newElement.style.display = "flex";
+  newElement.style.alignItems = "center";
+  newElement.dataset.id = id; // Store the item's ID in the element
+
+  const isCompleted = false; // For new items
+  newElement.innerHTML = `
+    <input type="checkbox" class="checkBox" ${isCompleted ? "checked" : ""}>
+        <p class="textOnList" style="text-decoration: ${isCompleted ? "line-through" : "none"}; 
+           color: ${isCompleted ? "gray" : "black"}">${itemAdded}</p>
+        <button class="delete" data-id="${id}">-</button>
+    `;
+  parentElement.appendChild(newElement);
+  console.log("function addItem");
+
+  // Call to update listeners for new checkboxes
+  setupCheckboxListeners();
+  // setupDeleteButtonListeners();
 }
 
-//Delete Function
+// Add event listener to all checkboxes
+function setupCheckboxListeners() {
+  const checkboxes = document.querySelectorAll(".checkBox");
+  checkboxes.forEach((checkbox) => {
+    // Remove any existing listeners
+    checkbox.removeEventListener("change", checkboxChangeHandler);
+    // Add new listener
+    checkbox.addEventListener("change", checkboxChangeHandler);
+  });
 
-// const deleteFunction = () => {
-// app
-// };
+  function checkboxChangeHandler(event) {
+    const todoItem = event.target.closest("li");
+    const todoId = todoItem.dataset.id;
+    const completed = event.target.checked;
 
+    // Update UI immediately
+    strikethrough(event.target);
 
-let inputted = '';
-//Modal
-// Get the modal
-var modal = document.getElementById('id01');
-
-// When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = "none";
-    }
-}
-
-//getInput function stores the value enterred in input area in a variable called 
-//inputted and also listens for keystroke Enter. When that happens, it should run 
-//the function called addItem(inputted). This function takes 
-function getInput(){
-    //add an event listener to the inputBox when the enter button is pressed
-    document.getElementById("inputBox").addEventListener("keydown", function(event) {
-        //This stores the value in a variable
-        const inputted = this.value.trim(); // Trim whitespace
-        // Check if the pressed key is 'Enter'
-        if (event.key === 'Enter' && inputted){
-        addItem(inputted);
-    this.value = "";
-// return inputted;
-        }
+    // Send PUT request to update completion status in the database
+    fetch(`/todo/${todoId}/toggle`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed }),
     })
-};
+      .then((response) => {
+        if (response.ok) {
+          throw new Error("Failed to update completion status");
+        }
+        return response.json();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        // Revert UI change if server update failed
+        event.target.checked = !completed;
+        strikethrough(event.target);
+      });
+  }
 
-//This function creates a strikethrough in the text once clicked
-function strikethrough(checkBox) {
-    const currentText = checkBox.nextElementSibling; // The text element after the checkbox
+  // Setup listeners for delete buttons
+  function setupDeleteButtonListeners() {
+    const deleteButtons = document.querySelectorAll(".delete");
+    deleteButtons.forEach((button) => {
+      button.addEventListener("click", function (event) {
+        const id = event.currentTarget.dataset.id;
 
-    // Toggle the strikethrough style based on checkbox state
-    if (checkBox.checked) {
-        currentText.style.textDecoration = "line-through";
-        currentText.style.color = "gray";
-    } else {
-        currentText.style.textDecoration = "none";
-        currentText.style.color = "black";
+        fetch(`/delete/${id}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const todoItem = event.currentTarget.closest("li"); // Use closest to find the <li>
+              if (todoItem) {
+                todoItem.remove(); // Remove the entire todo item (li)
+              } else {
+                console.error("Todo item not found in DOM.");
+              }
+            } else {
+              console.error("Error deleting todo item:", data.message);
+            }
+          })
+          .catch((err) => console.error("Error:", err));
+      });
+    });
+  }
+
+  // Get the ID from the button's dataset or from a parent element (like li)
+
+  // Optional: Send a DELETE request to the server
+
+  //Delete Function
+
+  // const deleteFunction = () => {
+  // app
+  // };
+
+  let inputted = "";
+  //Modal
+  // Get the modal
+  var modal = document.getElementById("id01");
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function (event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
     }
-}
+  };
 
-    // const text = document.getElementsByClassName("textOnList");
-    // const checkBox = document.getElementsByClassName("checkBox");
+  // This function creates a strikethrough in the text once clicked
+  function strikethrough(checkBox) {
+    const currentText = checkBox.nextElementSibling; // The text element after the checkbox
+    if (checkBox.checked) {
+      currentText.style.textDecoration = "line-through";
+      currentText.style.color = "gray";
+    } else {
+      currentText.style.textDecoration = "none";
+      currentText.style.color = "black";
+    }
+  }
+
+  // Call this function to initialize listeners on page load
+  getInput();
+}
+// const text = document.getElementsByClassName("textOnList");
+// const checkBox = document.getElementsByClassName("checkBox");
 // for (let i = 0; i < checkBox.length; i++) {
 //     const currentText = text[i];
 //     const currentCheckBox = checkBox[i];
@@ -108,72 +187,12 @@ function strikethrough(checkBox) {
 //     }
 // }
 
+// Assuming you're using Express and have a database instance called `db`
 
-//The getInput function is called when this button is clicked. 
-
-
-addBtn.addEventListener("click", function(){
-    const inputted = textOnList.value.trim(); // Get trimmed input value
-    addItem(inputted); // Call addItem with the input value
-    textOnList.value = ""; // Clear input field
-});
-    
-getInput(); 
-
-//
-function addItem(itemAdded, id){
-    if (!itemAdded) return;
-
-    let newElement = document.createElement("li");
-    newTodoItem.setAttribute('data-id', id); // Assign unique id to each item
-    newElement.style.display = "flex";  // This ensures the children of the <li> are inline like flex items
-    newElement.style.alignItems = "center";  // Centers items vertically
-    newElement.innerHTML = `<input type="checkbox" class="checkBox"><p class="textOnList">${itemAdded}</p>`
-    parentElement.appendChild(newElement);
-
-  // Store the item with its initial state (unchecked)
-  const itemData = { text: itemAdded, checked: false };
-
-    //Send the to-do item to the server
-    fetch('/add', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ item: itemAdded }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Item added to database:', data);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-    //Add strikethrough to each item added
-    // newElement.addEventListener("click", strikethrough);
-    const checkBox = newElement.querySelector('.checkBox');
-    checkBox.addEventListener("change", function (){
-        strikethrough(checkBox);
-        // Update the checked state in the database
-        itemData.checked = checkBox.checked;  // Update the local state
-        fetch('/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(itemData), // Send updated item state
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Item updated in database:', data);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    });
-};
-
-
-//Will need to implement code so that if nothing is inputted when you press enter
-//or add item, nothing happens
-
+function checkIds() {
+  const todos = document.querySelectorAll("#todoelement li");
+  todos.forEach((todo) => {
+    const text = todo.querySelector(".textOnList").textContent;
+    console.log(`Todo: "${text}" has ID: ${todo.dataset.id}`);
+  });
+}
