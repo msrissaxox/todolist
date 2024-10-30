@@ -8,8 +8,9 @@
 //strikethrough function
 
 //10/28 new errors identified:
-//items do not save to the new database
+
 //continue to work on delete effect and making sure that it's being processed on the back end
+//note that the delete route IS WORKING PROPERLY
 //continue to work on strikethrough effect. May need to dive into react state
 
 
@@ -50,6 +51,18 @@ addBtn.addEventListener("click", function () {
 function addItem(itemAdded, id) {
   if (!itemAdded) return;
 
+
+  //Send the new item to the server
+  fetch('/add', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ item: itemAdded })
+})
+.then(response => response.json())
+.then(data => {
+
   let newElement = document.createElement("li");
   newElement.style.display = "flex";
   newElement.style.alignItems = "center";
@@ -63,30 +76,34 @@ function addItem(itemAdded, id) {
         <button class="delete" data-id="${id}">-</button>
     `;
   parentElement.appendChild(newElement);
-  console.log("function addItem");
-
   // Call to update listeners for new checkboxes
-  setupCheckboxListeners();
-  // setupDeleteButtonListeners();
+//   setupCheckboxListeners();
+
+  console.log("Item added with ID:", data.id);
+})
+.catch(error => {
+    console.error('Error adding item:', error);
 }
+  // setupDeleteButtonListeners();
+)};
 
 // Add event listener to all checkboxes
-function setupCheckboxListeners() {
-  const checkboxes = document.querySelectorAll(".checkBox");
-  checkboxes.forEach((checkbox) => {
-    // Remove any existing listeners
-    checkbox.removeEventListener("change", checkboxChangeHandler);
-    // Add new listener
-    checkbox.addEventListener("change", checkboxChangeHandler);
-  });
+// function setupCheckboxListeners() {
+//   const checkboxes = document.querySelectorAll(".checkBox");
+//   checkboxes.forEach((checkbox) => {
+//     // Remove any existing listeners
+//     checkbox.removeEventListener("change", checkboxChangeHandler);
+//     // Add new listener
+//     checkbox.addEventListener("change", checkboxChangeHandler);
+//   });
 
-  function checkboxChangeHandler(event) {
-    const todoItem = event.target.closest("li");
-    const todoId = todoItem.dataset.id;
-    const completed = event.target.checked;
+//   function checkboxChangeHandler(event) {
+//     const todoItem = event.target.closest("li");
+//     const todoId = todoItem.dataset.id;
+//     const completed = event.target.checked;
 
     // Update UI immediately
-    strikethrough(event.target);
+    // strikethrough(event.target);
 
     // Send PUT request to update completion status in the database
     fetch(`/todo/${todoId}/toggle`, {
@@ -106,35 +123,66 @@ function setupCheckboxListeners() {
         event.target.checked = !completed;
         strikethrough(event.target);
       });
-  }
+  
 
   // Setup listeners for delete buttons
-  function setupDeleteButtonListeners() {
-    const deleteButtons = document.querySelectorAll(".delete");
-    deleteButtons.forEach((button) => {
-      button.addEventListener("click", function (event) {
-        const id = event.currentTarget.dataset.id;
+//   function setupDeleteButtonListeners() {
+//     const deleteButtons = document.querySelectorAll(".delete");
+//     deleteButtons.forEach((button) => {
+//       button.addEventListener("click", function (event) { 
+//       const id = 
 
-        fetch(`/delete/${id}`, {
-          method: "DELETE",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              const todoItem = event.currentTarget.closest("li"); // Use closest to find the <li>
-              if (todoItem) {
-                todoItem.remove(); // Remove the entire todo item (li)
-              } else {
-                console.error("Todo item not found in DOM.");
-              }
-            } else {
-              console.error("Error deleting todo item:", data.message);
-            }
-          })
-          .catch((err) => console.error("Error:", err));
-      });
-    });
-  }
+// console.log('button was clicked"')
+//      })})};
+
+
+
+// const deleteButtons = document.querySelectorAll(".delete");
+
+// for (let i = 0; i < deleteButtons.length; i++) {
+//     const deleted = deleteButtons[i];
+//     deleted.addEventListener("click", deleteFunction)
+//}
+const deleteButtons = document.querySelectorAll(".delete");
+deleteButtons.forEach(button => {
+    button.addEventListener("click", deleteFunction);
+});
+
+function deleteFunction (event){
+
+    console.log("this button was clicked");
+    console.log(event.currentTarget);
+        
+}
+
+
+
+
+
+
+
+
+
+//         fetch(`/delete/${id}`, {
+//           method: "DELETE",
+//         })
+//           .then((response) => response.json())
+//           .then((data) => {
+//             if (data.success) {
+//               const todoItem = event.currentTarget.closest("li"); // Use closest to find the <li>
+//               if (todoItem) {
+//                 todoItem.remove(); // Remove the entire todo item (li)
+//               } else {
+//                 console.error("Todo item not found in DOM.");
+//               }
+//             } else {
+//               console.error("Error deleting todo item:", data.message);
+//             }
+//           })
+//           .catch((err) => console.error("Error:", err));
+//       });
+//     });
+//   }
 
   // Get the ID from the button's dataset or from a parent element (like li)
 
@@ -172,7 +220,7 @@ function setupCheckboxListeners() {
 
   // Call this function to initialize listeners on page load
   getInput();
-}
+
 // const text = document.getElementsByClassName("textOnList");
 // const checkBox = document.getElementsByClassName("checkBox");
 // for (let i = 0; i < checkBox.length; i++) {

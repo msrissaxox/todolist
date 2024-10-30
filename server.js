@@ -5,6 +5,21 @@
 //2|completed|BOOLEAN|0||0
 //3|user_id|INTEGER|0||0
 
+
+//POSTMAN TESTS 10/29
+
+//post/register works
+//post/login works
+//get/todo/:15 works
+//delete/delete/:id works
+//post/add gives me this:
+//{
+//    "id": 24,
+//    "item": "one",
+//    "completed": false
+//}
+//post/todo/13/toggle works
+
 "use strict";
 
 const express = require("express");
@@ -131,8 +146,8 @@ app.delete("/delete/:id", async (req, res) => {
 // Create a new to-do item (only for authenticated users)
 //Tested on Postman and returned please log in first
 
-//10/28/2024 Add authentication after I test this in Postman
-app.post("/add", (req, res) => {
+
+app.post("/add", isAuthenticated, (req, res) => {
   // console.log('post add route hit');
   // res.json({ message: 'Test' });
   const { item } = req.body;
@@ -140,10 +155,6 @@ app.post("/add", (req, res) => {
   if (!item) {
     return res.status(400).json({ error: "Item is required" });
   }
-
-  // app.delete('', req, res) => {
-
-  // }
 
   db.run(
     "INSERT INTO todos (item, completed, user_id) VALUES (?, ?, ?)",
